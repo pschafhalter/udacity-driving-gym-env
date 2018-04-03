@@ -15,16 +15,18 @@ if __name__ == '__main__':
 
     env = DrivingEnv()
     agent = ForwardAgent(env.action_space)
-    episode_count = 1
+    episode_count = 5
     reward = 0.0
     done = False
-
+    
     for i in range(episode_count):
         ob = env.reset()    # Start a new scenario
+        count = 0
         while True:
             action = agent.act(ob, reward, done)    # Agent predict action
             ob, reward, done, _ = env.step(action)
-            if done:    # One episode finishes
+            count = count + 1
+            if done:
                 break
 
     env.close()

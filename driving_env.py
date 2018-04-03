@@ -77,6 +77,15 @@ class DrivingClient(threading.Thread):
                 "throttle": self.throttle.__str__()
             },
             skip_sid=True)
+            
+    def reset(self):
+        # print(self.throttle, self.steering_angle)
+        self.sio.emit(
+            "reset",
+            data={},
+            skip_sid=True
+            )
+        time.sleep(5)
 
  
 class DrivingEnv(gym.Env):
@@ -95,7 +104,9 @@ class DrivingEnv(gym.Env):
         self.client.start()
 
     def reset(self):
-        print("resetting")
+        print("Resetting")
+        self.client.reset()
+        self.error = 0
 
     def step(self, action):
         print("Step: ", action)
@@ -105,6 +116,9 @@ class DrivingEnv(gym.Env):
         time.sleep(0.1)
         self.error += (self.client.observed_speed - self.desired_speed)**2
         
+        if self.error > 5:
+            print("Error > 10")
+            self.reset()
         # observation, reward, done, ?
         return self.client.observed_frame, -self.error, False, dict()
 
