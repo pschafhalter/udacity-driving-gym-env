@@ -36,7 +36,11 @@ class DrivingClient(threading.Thread):
         def connect(sid, environ):
             print("connect ", sid)
             self.send_control()
-
+            
+        # @self.sio.on('disconnect')
+        # def disconnect(sid):
+        #     print ('disconnect ', sid)
+            
         @self.sio.on("telemetry")
         def telemetry(sid, data):
             if data:
@@ -80,12 +84,13 @@ class DrivingClient(threading.Thread):
             
     def reset(self):
         # print(self.throttle, self.steering_angle)
+        self.error=0
         self.sio.emit(
             "reset",
             data={},
             skip_sid=True
             )
-        time.sleep(5)
+        time.sleep(2)
 
  
 class DrivingEnv(gym.Env):
@@ -104,21 +109,23 @@ class DrivingEnv(gym.Env):
         self.client.start()
 
     def reset(self):
-        print("Resetting")
+        # self.client.close()
         self.client.reset()
         self.error = 0
 
     def step(self, action):
-        print("Step: ", action)
         self.client.steering_angle = action[3] - action[2]
         self.client.throttle = action[0] - action[1]
 
         time.sleep(0.1)
-        self.error += (self.client.observed_speed - self.desired_speed)**2
-        
-        if self.error > 5:
-            print("Error > 10")
+        # self.error += (self.client.observed_speed - self.desired_speed)**2
+        self.error += 1
+
+        print(self.error)
+        if self.error >=25:
+            print("Error >= 25")
             self.reset()
+            return self.client.observed_frame, -self.error, True, dict()
         # observation, reward, done, ?
         return self.client.observed_frame, -self.error, False, dict()
 
