@@ -11,6 +11,7 @@ import numpy as np
 import socketio
 import eventlet
 import eventlet.wsgi
+
 from PIL import Image
 from flask import Flask
 from io import BytesIO
@@ -82,15 +83,15 @@ class DrivingClient(threading.Thread):
             },
             skip_sid=True)
             
-    def reset(self):
-        # print(self.throttle, self.steering_angle)
-        self.error=0
-        self.sio.emit(
-            "reset",
-            data={},
-            skip_sid=True
-            )
-        time.sleep(2)
+    # def reset(self):
+    #     # print(self.throttle, self.steering_angle)
+    #     print("Resetting environment")
+    #     self.sio.emit(
+    #         "reset",
+    #         data={},
+    #         skip_sid=True
+    #         )
+        # time.sleep(5)
 
  
 class DrivingEnv(gym.Env):
@@ -109,8 +110,7 @@ class DrivingEnv(gym.Env):
         self.client.start()
 
     def reset(self):
-        # self.client.close()
-        self.client.reset()
+        # self.client.reset()
         self.error = 0
 
     def step(self, action):
@@ -118,13 +118,12 @@ class DrivingEnv(gym.Env):
         self.client.throttle = action[0] - action[1]
 
         time.sleep(0.1)
-        # self.error += (self.client.observed_speed - self.desired_speed)**2
-        self.error += 1
+        self.error += (self.client.observed_speed - self.desired_speed)**2
+        # self.error += 1
 
         print(self.error)
-        if self.error >=25:
-            print("Error >= 25")
-            self.reset()
+        if self.error >=25000:
+            print("Error >= 25000")
             return self.client.observed_frame, -self.error, True, dict()
         # observation, reward, done, ?
         return self.client.observed_frame, -self.error, False, dict()
