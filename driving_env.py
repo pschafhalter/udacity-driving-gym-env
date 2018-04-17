@@ -38,10 +38,6 @@ class DrivingClient(threading.Thread):
             print("connect ", sid)
             self.send_control()
             
-        # @self.sio.on('disconnect')
-        # def disconnect(sid):
-        #     print ('disconnect ', sid)
-            
         @self.sio.on("telemetry")
         def telemetry(sid, data):
             if data:
@@ -82,7 +78,10 @@ class DrivingClient(threading.Thread):
                 "throttle": self.throttle.__str__()
             },
             skip_sid=True)
-            
+    
+    # Attempted env reset using socketio
+    # socketio inconsistent in resetting environment
+    
     # def reset(self):
     #     # print(self.throttle, self.steering_angle)
     #     print("Resetting environment")
@@ -91,7 +90,6 @@ class DrivingClient(threading.Thread):
     #         data={},
     #         skip_sid=True
     #         )
-        # time.sleep(5)
 
  
 class DrivingEnv(gym.Env):
